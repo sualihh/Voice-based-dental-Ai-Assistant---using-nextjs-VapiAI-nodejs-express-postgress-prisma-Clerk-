@@ -14,10 +14,10 @@ function Footer() {
                 height={32}
                 className="w-8 h-8"
               />
-              <span className="font-semibold text-lg">DentWise</span>
+              <span className="font-semibold text-lg">Dent AI</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              AI-powered dental assistance that actually helps.
+              AI-powered dental assistant providing instant answers and personalized care guidance for all your oral health needs. Built for real people with real dental questions.
             </p>
           </div>
 
