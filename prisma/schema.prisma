@@ -26,6 +26,8 @@ model User {
   updatedAt    DateTime      @updatedAt
   
   appointments Appointment[]
+
+  @@map("users")
 }
 
 model Doctor {
@@ -42,6 +44,8 @@ model Doctor {
   updatedAt    DateTime      @updatedAt
 
   appointments Appointment[]
+
+  @@map("doctors")
 }
 
 model Appointment {
@@ -63,6 +67,8 @@ model Appointment {
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@map("appointments")
 }
 
 enum Gender {
