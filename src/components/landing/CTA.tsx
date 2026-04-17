@@ -88,3 +88,4 @@ function CTA() {
     </section>
   );
 }
+export default CTA
