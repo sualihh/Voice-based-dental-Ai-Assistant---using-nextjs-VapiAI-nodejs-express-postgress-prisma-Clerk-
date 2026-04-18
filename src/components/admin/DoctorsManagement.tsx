@@ -1,20 +1,41 @@
 import { useGetDoctors } from "@/hooks/use-doctor";
 import React, { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
-import { Badge, EditIcon, MailIcon, PhoneIcon, PlusIcon, Stethoscope } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
+import {
+  EditIcon,
+  MailIcon,
+  PhoneIcon,
+  PlusIcon,
+  Stethoscope,
+} from "lucide-react";
 import { Button } from "../ui/button";
 import Image from "next/image";
 import AddDoctorDialog from "./AddDoctorDialog";
+import { Badge } from "../ui/badge";
+import EditDoctorDialog from "./EditDoctorDialog";
+import { Doctor } from "@prisma/client";
 
 function DoctorsManagement() {
   const { data: doctors = [] } = useGetDoctors();
 
   const [isAddDialogOpen, setisAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setisEditDialogOpen] = useState(false);
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
 
-  const handleEditDoctor = () => {};
-  const handleCloseEditDialog = () => {};
+  const handleEditDoctor = (doctor: Doctor) => {
+    setSelectedDoctor(doctor);
+    setisEditDialogOpen(true);
+  };
+  const handleCloseEditDialog = () => {
+    setisEditDialogOpen(false);
+    setSelectedDoctor(null);
+  };
 
   return (
     <>
@@ -29,14 +50,16 @@ function DoctorsManagement() {
               Manage and oversee all doctors in your practice
             </CardDescription>
           </div>
-          <Button onClick={() => setisAddDialogOpen(true)} className="bg-linear-to-r from-primary to-primary/80 hover:to-primary">
+          <Button
+            onClick={() => setisAddDialogOpen(true)}
+            className="bg-linear-to-r from-primary to-primary/80 hover:to-primary"
+          >
             <PlusIcon className="mr-2 size-4" />
             Add doctor
           </Button>
         </CardHeader>
 
-
-         <CardContent>
+        <CardContent>
           <div className="space-y-4">
             {doctors.map((doctor) => (
               <div
@@ -46,7 +69,7 @@ function DoctorsManagement() {
                 <div className="flex items-center gap-4">
                   <Image
                     src={doctor.imageUrl}
-                    alt={doctor.name}
+                    alt={doctor.name ?? "Doctor"}
                     width={48}
                     height={48}
                     className="size-12 rounded-full object-cover ring-2 ring-background"
@@ -55,7 +78,7 @@ function DoctorsManagement() {
                   <div>
                     <div className="font-semibold">{doctor.name}</div>
                     <div className="text-sm text-muted-foreground">
-                      {doctor.speciality}
+                      {doctor.specialty}
 
                       <span className="ml-2 px-2 py-0.5 bg-muted rounded text-xs">
                         {doctor.gender === "MALE" ? "Male" : "Female"}
@@ -77,14 +100,22 @@ function DoctorsManagement() {
 
                 <div className="flex items-center gap-3">
                   <div className="text-center">
-                    <div className="font-semibold text-primary">{doctor.appointmentCount}</div>
-                    <div className="text-xs text-muted-foreground">Appointments</div>
+                    <div className="font-semibold text-primary">
+                      {doctor.appointmentCount}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Appointments
+                    </div>
                   </div>
 
                   {doctor.isActive ? (
-                    <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Active</Badge>
+                    <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                      Active
+                    </Badge>
                   ) : (
-                    <Badge variant="secondary">Inactive</Badge>
+                    <Badge className="bg-secondary text-secondary-foreground">
+                      Inactive
+                    </Badge>
                   )}
                   <Button
                     size="sm"
@@ -102,7 +133,16 @@ function DoctorsManagement() {
         </CardContent>
       </Card>
 
-      <AddDoctorDialog isOpen={isAddDialogOpen} onClose={() => setisAddDialogOpen(false)}
+      <AddDoctorDialog
+        isOpen={isAddDialogOpen}
+        onClose={() => setisAddDialogOpen(false)}
+      />
+      <EditDoctorDialog
+        key={selectedDoctor?.id}
+        isOpen={isEditDialogOpen}
+        onClose={handleCloseEditDialog}
+        doctor={selectedDoctor}
+      />
     </>
   );
 }
