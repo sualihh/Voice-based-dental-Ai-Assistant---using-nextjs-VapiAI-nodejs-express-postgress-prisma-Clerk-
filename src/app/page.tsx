@@ -7,10 +7,15 @@ import CTA from "@/components/landing/CTA";
 import Footer from "@/components/landing/Footer";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import UserSync from "@/components/UserSync";
 
 export default async function Home() {
 
   const user = await currentUser();
+
+  
+
+  await UserSync()
 
   if (user) redirect("/dashboard");
 

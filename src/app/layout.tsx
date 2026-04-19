@@ -44,7 +44,7 @@ export default function RootLayout({
           <body
             className={`${geistSans.variable} ${geistMono.variable} antialiased dark`}
           >
-            <UserSync />
+            {/* <UserSync /> */}
             {children}
           </body>
         </html>
