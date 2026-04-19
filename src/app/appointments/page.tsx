@@ -35,6 +35,8 @@ function AppointmentsPage() {
   };
 
   const handleBookAppointment = async () => {
+
+
     if (!selectedDentistId || !selectedDate || !selectedTime) {
       toast.error("Please fill in all required fields");
       return;
@@ -55,6 +57,7 @@ function AppointmentsPage() {
           setBookedAppointment(appointment);
 
           try {
+            
             const emailResponse = await fetch("/api/send-appointment-email", {
               method: "POST",
               headers: {
