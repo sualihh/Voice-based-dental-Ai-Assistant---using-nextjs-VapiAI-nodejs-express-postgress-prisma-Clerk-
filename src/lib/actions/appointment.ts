@@ -33,7 +33,7 @@ export async function getAppointment() {
       orderBy: {createdAt: 'desc'}
     });
 
-    return result;
+    return result.map(transformAppointment);
   } catch (error) {
     console.log("Error in Featching Appointment");
   }
