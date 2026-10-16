@@ -2,7 +2,7 @@ import Image from "next/image";
 
 function Footer() {
   return (
-    <footer className="px-6 py-12 border-t bg-muted/30">
+    <footer id="about" className="px-6 py-12 border-t bg-muted/30">
       <div className="max-w-6xl mx-auto">
         <div className="grid md:grid-cols-4 gap-8">
           <div className="space-y-4">
@@ -25,19 +25,19 @@ function Footer() {
             <h4 className="font-medium mb-3">Product</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <a href="#" className="hover:text-foreground">
+                <a href="/#how-it-works" className="hover:text-foreground">
                   How it works
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-foreground">
+                <a href="/#pricing" className="hover:text-foreground">
                   Pricing
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-foreground">
+                <span>
                   FAQ
-                </a>
+                </span>
               </li>
             </ul>
           </div>
@@ -46,19 +46,19 @@ function Footer() {
             <h4 className="font-medium mb-3">Support</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <a href="#" className="hover:text-foreground">
+                <span>
                   Help center
-                </a>
+                </span>
               </li>
               <li>
-                <a href="#" className="hover:text-foreground">
+                <span>
                   Contact us
-                </a>
+                </span>
               </li>
               <li>
-                <a href="#" className="hover:text-foreground">
+                <span>
                   Status
-                </a>
+                </span>
               </li>
             </ul>
           </div>
@@ -67,19 +67,19 @@ function Footer() {
             <h4 className="font-medium mb-3">Legal</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <a href="#" className="hover:text-foreground">
+                <span>
                   Privacy
-                </a>
+                </span>
               </li>
               <li>
-                <a href="#" className="hover:text-foreground">
+                <span>
                   Terms
-                </a>
+                </span>
               </li>
               <li>
-                <a href="#" className="hover:text-foreground">
+                <span>
                   Security
-                </a>
+                </span>
               </li>
             </ul>
           </div>

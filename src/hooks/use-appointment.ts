@@ -19,8 +19,8 @@ export function useGetAppointment() {
 
 export function useBookedTimeSlots(doctorId: string, date: string) {
   return useQuery({
-    queryKey: ["getBookedTimeSlots"],
-    queryFn: () => getBookedTimeSlots(doctorId!, date),
+    queryKey: ["getBookedTimeSlots", doctorId, date],
+    queryFn: () => getBookedTimeSlots(doctorId, date),
     enabled: !!doctorId && !!date, // only run query if both doctorId and date are provided
   });
 }

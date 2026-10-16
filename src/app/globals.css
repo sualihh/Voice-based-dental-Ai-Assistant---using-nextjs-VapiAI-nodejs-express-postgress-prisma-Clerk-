@@ -13,38 +13,38 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #0f1419;
-  --card: #f7f8f8;
-  --card-foreground: #0f1419;
+  --background: #f7fbff;
+  --foreground: #18324a;
+  --card: #ffffff;
+  --card-foreground: #18324a;
   --popover: #ffffff;
-  --popover-foreground: #0f1419;
-  --primary: #1e9df1;
+  --popover-foreground: #18324a;
+  --primary: #1687bd;
   --primary-foreground: #ffffff;
-  --secondary: #0f1419;
-  --secondary-foreground: #ffffff;
-  --muted: #e5e5e6;
-  --muted-foreground: #0f1419;
-  --accent: #e3ecf6;
-  --accent-foreground: #1e9df1;
+  --secondary: #eaf4fa;
+  --secondary-foreground: #18324a;
+  --muted: #eef4f8;
+  --muted-foreground: #60768a;
+  --accent: #e4f3fb;
+  --accent-foreground: #147caf;
   --destructive: #f4212e;
   --destructive-foreground: #ffffff;
-  --border: #e1eaef;
-  --input: #f7f9fa;
-  --ring: #1da1f2;
-  --chart-1: #1e9df1;
+  --border: #dce9f1;
+  --input: #f5f9fc;
+  --ring: #1687bd;
+  --chart-1: #1687bd;
   --chart-2: #00b87a;
   --chart-3: #f7b928;
   --chart-4: #17bf63;
   --chart-5: #e0245e;
-  --sidebar: #f7f8f8;
-  --sidebar-foreground: #0f1419;
-  --sidebar-primary: #1e9df1;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #18324a;
+  --sidebar-primary: #1687bd;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #e3ecf6;
-  --sidebar-accent-foreground: #1e9df1;
-  --sidebar-border: #e1e8ed;
-  --sidebar-ring: #1da1f2;
+  --sidebar-accent: #eaf4fa;
+  --sidebar-accent-foreground: #147caf;
+  --sidebar-border: #dce9f1;
+  --sidebar-ring: #1687bd;
   --font-sans: Open Sans, sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: Menlo, monospace;
@@ -54,15 +54,15 @@
   --shadow-blur: 0px;
   --shadow-spread: 0px;
   --shadow-opacity: 0;
-  --shadow-color: rgba(29,161,242,0.15);
-  --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-sm: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-md: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-lg: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-color: rgba(24, 73, 105, 0.12);
+  --shadow-2xs: 0px 1px 2px 0px rgba(24, 73, 105, 0.04);
+  --shadow-xs: 0px 1px 3px 0px rgba(24, 73, 105, 0.06);
+  --shadow-sm: 0px 2px 6px 0px rgba(24, 73, 105, 0.07);
+  --shadow: 0px 3px 10px 0px rgba(24, 73, 105, 0.08);
+  --shadow-md: 0px 5px 14px 0px rgba(24, 73, 105, 0.1);
+  --shadow-lg: 0px 10px 24px 0px rgba(24, 73, 105, 0.12);
+  --shadow-xl: 0px 16px 36px 0px rgba(24, 73, 105, 0.14);
+  --shadow-2xl: 0px 24px 50px 0px rgba(24, 73, 105, 0.18);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 }
@@ -179,6 +179,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image: linear-gradient(180deg, #f5faff 0%, #ffffff 52%, #f7fbff 100%);
+    min-height: 100vh;
   }
 }
 

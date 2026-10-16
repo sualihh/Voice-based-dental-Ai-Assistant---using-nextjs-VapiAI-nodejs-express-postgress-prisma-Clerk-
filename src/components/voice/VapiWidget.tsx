@@ -1,45 +1,48 @@
 "use client";
 
 import { vapi } from "@/lib/vapi";
-import { Button } from "@base-ui/react";
+import { Button } from "@/components/ui/button";
 import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { Card } from "../ui/card";
 
+type TranscriptMessage = {
+  content: string;
+  role: "assistant" | "user";
+};
+
 function VapiWidget() {
   const [callActive, setCallActive] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<TranscriptMessage[]>([]);
   const [callEnded, setCallEnded] = useState(false);
+  const [callError, setCallError] = useState("");
 
   const { user, isLoaded } = useUser();
 
-  const mesaageContainerRef = useRef<HTMLDivElement>(null);
-
-  // auto scroll for message
+  const messageContainerRef = useRef<HTMLDivElement>(null);
+  const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
 
   useEffect(() => {
-    if (mesaageContainerRef.current) {
-      mesaageContainerRef.current.scrollTop =
-        mesaageContainerRef.current.scrollHeight;
+    if (messageContainerRef.current) {
+      messageContainerRef.current.scrollTop =
+        messageContainerRef.current.scrollHeight;
     }
   }, [messages]);
 
-  // for vapi listener
-
   useEffect(() => {
-    const handleCallStart = () => {
-      console.log("Call Started");
+    if (!vapi) return;
 
+    const handleCallStart = () => {
       setConnecting(false);
       setCallActive(true);
       setCallEnded(false);
+      setCallError("");
     };
 
     const handleCallEnd = () => {
-      console.log("Call ended");
       setCallActive(false);
       setConnecting(false);
       setIsSpeaking(false);
@@ -47,26 +50,36 @@ function VapiWidget() {
     };
 
     const handleSpeechStart = () => {
-      console.log("AI started Speaking");
       setIsSpeaking(true);
     };
 
     const handleSpeechEnd = () => {
-      console.log("AI stopped Speaking");
       setIsSpeaking(false);
     };
 
     const handleMessage = (message: any) => {
-      if (message.type === "transcript" && message.transcriptType === "final") {
-        const newMessage = { content: message.transcript, role: message.role };
-        setMessages((prev) => [...prev, newMessage]);
+      if (
+        message.type === "transcript" &&
+        message.transcriptType === "final" &&
+        (message.role === "assistant" || message.role === "user") &&
+        typeof message.transcript === "string"
+      ) {
+        setMessages((previous) => [
+          ...previous,
+          { content: message.transcript, role: message.role },
+        ]);
       }
     };
 
     const handleError = (error: any) => {
-      console.log("Vapi Error", error);
       setConnecting(false);
       setCallActive(false);
+      setIsSpeaking(false);
+      setCallError(
+        typeof error?.message === "string"
+          ? error.message
+          : "The voice assistant encountered an error. Please try again."
+      );
     };
 
     vapi
@@ -89,18 +102,31 @@ function VapiWidget() {
   }, []);
 
   const toggleCall = async () => {
-    if (callActive) vapi.stop();
-    else {
-      try {
+    if (!vapi || !assistantId) {
+        setCallError(
+          "Voice assistant is not configured. Add the Vapi public API key and assistant ID to the app environment."
+        );
+        return;
+    }
+
+    if (callActive) {
+        vapi.stop();
+        return;
+    }
+
+    try {
         setConnecting(true);
+        setCallError("");
         setMessages([]);
         setCallEnded(false);
-
-        await vapi.start(process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID);
-      } catch (error) {
-        console.log("Failed to start call", error);
+        await vapi.start(assistantId);
+    } catch (error) {
         setConnecting(false);
-      }
+        setCallError(
+          error instanceof Error
+            ? error.message
+            : "Unable to start the voice assistant. Check microphone permissions and try again."
+        );
     }
   };
 
@@ -135,7 +161,7 @@ function VapiWidget() {
             >
               {/* voice wave animation when speaking */}
               <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 flex justify-center items-center h-20">
-                {[...Array(5)].map((_, i) => (
+                {[20, 35, 50, 35, 20].map((height, i) => (
                   <div
                     key={i}
                     className={`mx-1 h-16 w-1 bg-primary rounded-full ${
@@ -143,7 +169,7 @@ function VapiWidget() {
                     }`}
                     style={{
                       animationDelay: `${i * 0.1}s`,
-                      height: isSpeaking ? `${Math.random() * 50 + 20}%` : "5%",
+                      height: isSpeaking ? `${height}%` : "5%",
                     }}
                   />
                 ))}
@@ -208,7 +234,7 @@ function VapiWidget() {
             {/* User Image */}
             <div className="relative size-32 mb-4">
               <Image
-                src={user?.imageUrl!}
+                src={user?.imageUrl || "/logo.png"}
                 alt="User"
                 width={128}
                 height={128}
@@ -237,7 +263,7 @@ function VapiWidget() {
       {/* MESSAGE CONTAINER */}
       {messages.length > 0 && (
         <div
-          ref={mesaageContainerRef}
+          ref={messageContainerRef}
           className="w-full bg-card/90 backdrop-blur-sm border border-border rounded-xl p-4 mb-8 h-64 overflow-y-auto transition-all duration-300 scroll-smooth"
         >
           <div className="space-y-3">
@@ -267,18 +293,22 @@ function VapiWidget() {
         </div>
       )}
 
+      {callError && (
+        <p role="alert" className="mb-4 text-center text-sm text-destructive">
+          {callError}
+        </p>
+      )}
+
       {/* CALL CONTROLS */}
       <div className="w-full flex justify-center gap-4">
         <Button
           className={`w-44 text-xl rounded-3xl ${
             callActive
               ? "bg-destructive hover:bg-destructive/90"
-              : callEnded
-                ? "bg-red-500 hover:bg-red-700"
-                : "bg-primary hover:bg-primary/90"
+              : "bg-primary hover:bg-primary/90"
           } text-white relative`}
           onClick={toggleCall}
-          disabled={connecting || callEnded}
+          disabled={connecting || !isLoaded}
         >
           {connecting && (
             <span className="absolute inset-0 rounded-full animate-ping bg-primary/50 opacity-75"></span>
@@ -290,7 +320,7 @@ function VapiWidget() {
               : connecting
                 ? "Connecting..."
                 : callEnded
-                  ? "Call Ended"
+                  ? "Start Another Call"
                   : "Start Call"}
           </span>
         </Button>

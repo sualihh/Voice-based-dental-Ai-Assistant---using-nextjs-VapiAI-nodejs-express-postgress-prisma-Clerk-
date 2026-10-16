@@ -30,17 +30,13 @@ export const formatPhoneNumber = (value: string) => {
 
 
 export const getNext5Days = () => {
-  const dates = [];
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  for (let i = 0; i < 5; i++) {
-    const date = new Date(tomorrow);
-    date.setDate(date.getDate() + i);
-    dates.push(date.toISOString().split("T")[0]);
-  }
-
-  return dates;
+  const today = new Date();
+  return Array.from({ length: 5 }, (_, index) => {
+    const date = new Date(
+      Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + index + 1)
+    );
+    return date.toISOString().slice(0, 10);
+  });
 };
 
 export const getAvailableTimeSlots = () => {

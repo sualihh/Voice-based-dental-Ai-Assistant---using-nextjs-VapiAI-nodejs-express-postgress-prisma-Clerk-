@@ -1,9 +1,11 @@
 "use server";
 
-import { AppointmentStatus } from "@prisma/client";
+import { AppointmentStatus, Prisma } from "@prisma/client";
 import { prisma } from "../prisma";
 import { auth } from "@clerk/nextjs/server";
+import { APPOINTMENT_TYPES, getAvailableTimeSlots, getNext5Days } from "../utils";
 
+class AppointmentBookingError extends Error {}
 
 function transformAppointment(appointment: any) {
   return {
@@ -116,7 +118,7 @@ export async function getBookedTimeSlots(doctorId: string, date: string) {
     return appointments.map((appointment) => appointment.time);
   } catch (error) {
     console.error("Error fetching booked time slots:", error);
-    return []; // return empty array if there's an error
+    throw new Error("Failed to load appointment availability");
   }
 }
 
@@ -130,39 +132,86 @@ interface BookAppointmentInput {
 export async function bookAppointment(input: BookAppointmentInput) {
   try {
     const { userId } = await auth();
-    if (!userId) throw new Error("You must be logged in to book an appointment");
+    if (!userId) throw new AppointmentBookingError("You must be logged in to book an appointment");
 
     if (!input.doctorId || !input.date || !input.time) {
-      throw new Error("Doctor, date, and time are required");
+      throw new AppointmentBookingError("Doctor, date, and time are required");
+    }
+
+    if (!getNext5Days().includes(input.date)) {
+      throw new AppointmentBookingError("Please select an available date");
+    }
+
+    if (!getAvailableTimeSlots().includes(input.time)) {
+      throw new AppointmentBookingError("Please select an available time");
+    }
+
+    const appointmentType = APPOINTMENT_TYPES.find(
+      (type) => type.name === input.reason
+    );
+    if (!appointmentType) {
+      throw new AppointmentBookingError("Please select a valid appointment type");
     }
 
     const user = await prisma.user.findUnique({ where: { clerkId: userId } });
     if (!user) throw new Error("User not found. Please ensure your account is properly set up.");
 
-    const appointment = await prisma.appointment.create({
-      data: {
-        userId: user.id,
-        doctorId: input.doctorId,
-        date: new Date(input.date),
-        time: input.time,
-        reason: input.reason || "General consultation",
-        status: "CONFIRMED",
-      },
-      include: {
-        user: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true,
+    const appointment = await prisma.$transaction(
+      async (transaction) => {
+        const doctor = await transaction.doctor.findFirst({
+          where: { id: input.doctorId, isActive: true },
+          select: { id: true },
+        });
+        if (!doctor) {
+          throw new AppointmentBookingError("This dentist is no longer available");
+        }
+
+        const existingAppointment = await transaction.appointment.findFirst({
+          where: {
+            doctorId: doctor.id,
+            date: new Date(`${input.date}T00:00:00.000Z`),
+            time: input.time,
+            status: { in: ["CONFIRMED", "COMPLETED"] },
           },
-        },
-        doctor: { select: { name: true, imageUrl: true } },
+          select: { id: true },
+        });
+        if (existingAppointment) {
+          throw new AppointmentBookingError(
+            "This time was just booked. Please choose another time"
+          );
+        }
+
+        return transaction.appointment.create({
+          data: {
+            userId: user.id,
+            doctorId: doctor.id,
+            date: new Date(`${input.date}T00:00:00.000Z`),
+            time: input.time,
+            duration: Number.parseInt(appointmentType.duration, 10),
+            reason: appointmentType.name,
+            status: "CONFIRMED",
+          },
+          include: {
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+            doctor: { select: { name: true, imageUrl: true } },
+          },
+        });
       },
-    });
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+    );
 
     return transformAppointment(appointment);
   } catch (error) {
     console.error("Error booking appointment:", error);
+    if (error instanceof AppointmentBookingError) {
+      throw error;
+    }
     throw new Error("Failed to book appointment. Please try again later.");
   }
 }

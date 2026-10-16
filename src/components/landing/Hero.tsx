@@ -1,20 +1,18 @@
-import { Button } from '@/components/ui/button'
 import { SignUpButton } from '@clerk/nextjs'
 import { CalendarIcon, MicIcon, StarIcon } from 'lucide-react'
 import Image from 'next/image'
-import React from 'react'
+import { Button } from '@/components/ui/button'
 
 function Hero() {
   return (
-    <section className="relative h-screen flex items-center overflow-hidden pt-20">
-      {/* GRID BG  */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background via-muted/5 to-primary/5">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#f1f5f9_1px,transparent_1px),linear-gradient(to_bottom,#f1f5f9_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20"></div>
+    <section className="relative flex min-h-screen items-center overflow-hidden bg-sky-50 pt-20 text-slate-900">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-cover bg-[position:65%_center] md:bg-center"
+        style={{ backgroundImage: "url('/dental-hero-background.png')" }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/75 to-white/5" />
       </div>
-
-      {/* GRADIENT ORBS */}
-      <div className="absolute top-20 left-1/4 w-72 h-72 bg-gradient-to-r from-primary/20 to-primary/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-gradient-to-r from-primary/15 to-primary/5 rounded-full blur-3xl" />
 
       <div className="relative z-10 w-full px-6">
         <div className="max-w-7xl mx-auto">
@@ -32,7 +30,7 @@ function Hero() {
 
                 {/* MAIN HEADING */}
                 <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
-                  <span className="bg-gradient-to-br from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-700 bg-clip-text text-transparent">
                     Ask dental
                   </span>
                   <br />
@@ -40,7 +38,7 @@ function Hero() {
                     questions
                   </span>
                   <br />
-                  <span className="bg-gradient-to-br from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-700 bg-clip-text text-transparent">
                      answered instantly
                   </span>
                 </h1>
@@ -129,21 +127,6 @@ function Hero() {
               </div>
             </div>
 
-            {/* RIGHT CONTENT - HERO IMAGE */}
-
-            <div className="relative lg:pl-8">
-              {/* GRADIENT ORBS */}
-              <div className="absolute -top-4 -left-4 w-24 h-24 bg-linears-to-br from-primary/20 to-primary/10 rounded-2xl rotate-45 blur-xl"></div>
-              <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-gradient-to-br from-primary/15 to-primary/5 rounded-full blur-2xl"></div>
-
-              <Image
-                src={"/hero.png"}
-                alt="DentWise AI"
-                width={600}
-                height={600}
-                className="w-full h-auto"
-              />
-            </div>
           </div>
         </div>
       </div>
