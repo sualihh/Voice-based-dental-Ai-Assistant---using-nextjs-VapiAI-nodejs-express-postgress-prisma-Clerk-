@@ -17,11 +17,11 @@ export function useGetAppointment() {
   return result;
 }
 
-export function useBookedTimeSlots(doctorId: string, date: string) {
+export function useBookedTimeSlots(doctorId: string, date: string, duration: number) {
   return useQuery({
-    queryKey: ["getBookedTimeSlots", doctorId, date],
-    queryFn: () => getBookedTimeSlots(doctorId, date),
-    enabled: !!doctorId && !!date, // only run query if both doctorId and date are provided
+    queryKey: ["getBookedTimeSlots", doctorId, date, duration],
+    queryFn: () => getBookedTimeSlots(doctorId, date, duration),
+    enabled: !!doctorId && !!date && duration > 0,
   });
 }
 
@@ -32,16 +32,18 @@ export function useBookAppointment() {
     mutationFn: bookAppointment,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["getUserAppointments"] });
+      queryClient.invalidateQueries({ queryKey: ["getBookedTimeSlots"] });
     },
     onError: (error) => console.error("Failed to book appointment:", error),
   });
 }
 
 // Get user-specific appointments
-export function useUserAppointments() {
+export function useUserAppointments(enabled = true) {
   const result = useQuery({
     queryKey: ["getUserAppointments"],
     queryFn: getUserAppointments,
+    enabled,
   });
 
   return result;

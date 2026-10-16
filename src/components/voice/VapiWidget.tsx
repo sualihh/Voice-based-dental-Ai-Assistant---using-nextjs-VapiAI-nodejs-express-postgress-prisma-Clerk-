@@ -6,11 +6,44 @@ import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { Card } from "../ui/card";
+import TextChatFallback from "./TextChatFallback";
 
 type TranscriptMessage = {
+  id: number;
   content: string;
   role: "assistant" | "user";
 };
+
+type VapiTranscriptEvent = {
+  type: "transcript";
+  transcriptType: "final";
+  transcript: string;
+  role: "assistant" | "user";
+};
+
+function isVapiTranscriptEvent(value: unknown): value is VapiTranscriptEvent {
+  if (typeof value !== "object" || value === null) return false;
+
+  const message = value as Record<string, unknown>;
+  return (
+    message.type === "transcript" &&
+    message.transcriptType === "final" &&
+    typeof message.transcript === "string" &&
+    (message.role === "assistant" || message.role === "user")
+  );
+}
+
+function getVoiceErrorMessage(error: unknown) {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+  return "The voice assistant encountered an error. Please try again.";
+}
 
 function VapiWidget() {
   const [callActive, setCallActive] = useState(false);
@@ -23,17 +56,20 @@ function VapiWidget() {
   const { user, isLoaded } = useUser();
 
   const messageContainerRef = useRef<HTMLDivElement>(null);
+  const messageIdRef = useRef(0);
   const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
+  const [showTextChat, setShowTextChat] = useState(false);
 
   useEffect(() => {
     if (messageContainerRef.current) {
       messageContainerRef.current.scrollTop =
         messageContainerRef.current.scrollHeight;
     }
-  }, [messages]);
+  });
 
   useEffect(() => {
-    if (!vapi) return;
+    const client = vapi;
+    if (!client) return;
 
     const handleCallStart = () => {
       setConnecting(false);
@@ -57,32 +93,27 @@ function VapiWidget() {
       setIsSpeaking(false);
     };
 
-    const handleMessage = (message: any) => {
-      if (
-        message.type === "transcript" &&
-        message.transcriptType === "final" &&
-        (message.role === "assistant" || message.role === "user") &&
-        typeof message.transcript === "string"
-      ) {
+    const handleMessage = (message: unknown) => {
+      if (isVapiTranscriptEvent(message)) {
         setMessages((previous) => [
           ...previous,
-          { content: message.transcript, role: message.role },
+          {
+            id: messageIdRef.current++,
+            content: message.transcript,
+            role: message.role,
+          },
         ]);
       }
     };
 
-    const handleError = (error: any) => {
+    const handleError = (error: unknown) => {
       setConnecting(false);
       setCallActive(false);
       setIsSpeaking(false);
-      setCallError(
-        typeof error?.message === "string"
-          ? error.message
-          : "The voice assistant encountered an error. Please try again."
-      );
+      setCallError(getVoiceErrorMessage(error));
     };
 
-    vapi
+    client
       .on("call-start", handleCallStart)
       .on("call-end", handleCallEnd)
       .on("speech-start", handleSpeechStart)
@@ -91,7 +122,7 @@ function VapiWidget() {
       .on("error", handleError);
 
     return () => {
-      vapi
+      client
         .off("call-start", handleCallStart)
         .off("call-end", handleCallEnd)
         .off("speech-start", handleSpeechStart)
@@ -102,7 +133,8 @@ function VapiWidget() {
   }, []);
 
   const toggleCall = async () => {
-    if (!vapi || !assistantId) {
+    const client = vapi;
+    if (!client || !assistantId) {
         setCallError(
           "Voice assistant is not configured. Add the Vapi public API key and assistant ID to the app environment."
         );
@@ -110,7 +142,7 @@ function VapiWidget() {
     }
 
     if (callActive) {
-        vapi.stop();
+        client.stop();
         return;
     }
 
@@ -119,7 +151,7 @@ function VapiWidget() {
         setCallError("");
         setMessages([]);
         setCallEnded(false);
-        await vapi.start(assistantId);
+        await client.start(assistantId);
     } catch (error) {
         setConnecting(false);
         setCallError(
@@ -163,7 +195,7 @@ function VapiWidget() {
               <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 flex justify-center items-center h-20">
                 {[20, 35, 50, 35, 20].map((height, i) => (
                   <div
-                    key={i}
+                    key={height}
                     className={`mx-1 h-16 w-1 bg-primary rounded-full ${
                       isSpeaking ? "animate-sound-wave" : ""
                     }`}
@@ -244,9 +276,7 @@ function VapiWidget() {
 
             <h2 className="text-xl font-bold text-foreground">You</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              {user
-                ? (user.firstName + " " + (user.lastName || "")).trim()
-                : "Guest"}
+              {user ? `${user.firstName} ${user.lastName || ""}`.trim() : "Guest"}
             </p>
 
             {/* User Ready Text */}
@@ -267,9 +297,9 @@ function VapiWidget() {
           className="w-full bg-card/90 backdrop-blur-sm border border-border rounded-xl p-4 mb-8 h-64 overflow-y-auto transition-all duration-300 scroll-smooth"
         >
           <div className="space-y-3">
-            {messages.map((msg, index) => (
+            {messages.map((msg) => (
               <div
-                key={index}
+                key={msg.id}
                 className="message-item animate-in fade-in duration-300"
               >
                 <div className="font-semibold text-xs text-muted-foreground mb-1">
@@ -308,7 +338,7 @@ function VapiWidget() {
               : "bg-primary hover:bg-primary/90"
           } text-white relative`}
           onClick={toggleCall}
-          disabled={connecting || !isLoaded}
+          disabled={connecting || !isLoaded || !assistantId}
         >
           {connecting && (
             <span className="absolute inset-0 rounded-full animate-ping bg-primary/50 opacity-75"></span>
@@ -324,7 +354,23 @@ function VapiWidget() {
                   : "Start Call"}
           </span>
         </Button>
+
+        {/* Text chat toggle (fallback) */}
+        <Button
+          variant="secondary"
+          className={`w-44 text-sm rounded-3xl`}
+          onClick={() => setShowTextChat((s) => !s)}
+        >
+          {showTextChat ? "Hide Text Chat" : "Open Text Chat"}
+        </Button>
       </div>
+
+      {/* Text chat fallback UI */}
+      {showTextChat && (
+        <div className="mt-6">
+          <TextChatFallback />
+        </div>
+      )}
     </div>
   );
 }

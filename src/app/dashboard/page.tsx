@@ -2,7 +2,8 @@ import ActivityOverview from "@/components/dashboard/ActivityOverview";
 import MainActions from "@/components/dashboard/MainActions";
 import WelcomeSection from "@/components/dashboard/WelcomeSection";
 import Navbar from "@/components/NavBar";
-import React from "react";
+
+export const dynamic = "force-dynamic";
 
 const Dashboard = () => {
   return (

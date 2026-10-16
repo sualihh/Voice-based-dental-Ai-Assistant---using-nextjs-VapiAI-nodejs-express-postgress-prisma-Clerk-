@@ -1,5 +1,5 @@
 {
-  "name": "dentalwise",
+  "name": "huluxAi",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -7,7 +7,9 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "biome check",
-    "format": "biome format --write"
+    "format": "biome format --write",
+    "prisma:migrate": "npx prisma migrate dev --name init",
+    "seed": "node prisma/seed.js"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.0",

@@ -1,18 +1,36 @@
 "use server";
 
-import { AppointmentStatus, Prisma } from "@prisma/client";
+import { Prisma, type AppointmentStatus } from "@prisma/client";
 import { prisma } from "../prisma";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { APPOINTMENT_TYPES, getAvailableTimeSlots, getNext5Days } from "../utils";
 
 class AppointmentBookingError extends Error {}
 
-function transformAppointment(appointment: any) {
+type AppointmentWithRelations = Prisma.AppointmentGetPayload<{
+  include: {
+    user: {
+      select: {
+        firstName: true;
+        lastName: true;
+        email: true;
+      };
+    };
+    doctor: {
+      select: {
+        name: true;
+        imageUrl: true;
+      };
+    };
+  };
+}>;
+
+function transformAppointment(appointment: AppointmentWithRelations) {
   return {
     ...appointment,
     patientName: `${appointment.user.firstName || ""} ${appointment.user.lastName || ""}`.trim(),
     patientEmail: appointment.user.email,
-    doctorName: appointment.doctor.name,
+    doctorName: appointment.doctor.name ?? "Dentist",
     doctorImageUrl: appointment.doctor.imageUrl || "",
     date: appointment.date.toISOString().split("T")[0],
   };
@@ -37,7 +55,8 @@ export async function getAppointment() {
 
     return result.map(transformAppointment);
   } catch (error) {
-    console.log("Error in Featching Appointment");
+    console.error("Error fetching appointments:", error);
+    throw new Error("Failed to fetch appointments");
   }
 }
 
@@ -51,8 +70,25 @@ export async function getUserAppointments() {
     if (!userId) throw new Error("You must be logged in to view appointments");
 
     // find user by clerkId from authenticated session
-    const user = await prisma.user.findUnique({ where: { clerkId: userId } });
-    if (!user) throw new Error("User not found. Please ensure your account is properly set up.");
+    const clerkUser = await currentUser();
+    const email = clerkUser?.emailAddresses[0]?.emailAddress;
+    if (!clerkUser || !email) {
+      throw new AppointmentBookingError(
+        "Your account needs a verified email address before booking"
+      );
+    }
+
+    const user = await prisma.user.upsert({
+      where: { clerkId: userId },
+      update: {},
+      create: {
+        clerkId: userId,
+        email,
+        firstName: clerkUser.firstName,
+        lastName: clerkUser.lastName,
+        phone: clerkUser.phoneNumbers[0]?.phoneNumber,
+      },
+    });
 
     const appointments = await prisma.appointment.findMany({
       where: { userId: user.id },
@@ -98,12 +134,25 @@ export async function getUserAppointmentStats() {
     };
   } catch (error) {
     console.error("Error fetching user appointment stats:", error);
-    return { totalAppointments: 0, completedAppointments: 0 };
+    throw new Error("Failed to fetch user appointment stats");
   }
 }
 
-export async function getBookedTimeSlots(doctorId: string, date: string) {
+export async function getBookedTimeSlots(
+  doctorId: string,
+  date: string,
+  duration: number
+) {
   try {
+    if (
+      !doctorId ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
+      !Number.isInteger(duration) ||
+      duration < 1
+    ) {
+      throw new Error("Doctor, date, and appointment duration are required");
+    }
+
     const appointments = await prisma.appointment.findMany({
       where: {
         doctorId,
@@ -112,10 +161,23 @@ export async function getBookedTimeSlots(doctorId: string, date: string) {
           in: ["CONFIRMED", "COMPLETED"], // consider both confirmed and completed appointments as blocking
         },
       },
-      select: { time: true },
+      select: { time: true, duration: true },
     });
 
-    return appointments.map((appointment) => appointment.time);
+    const toMinutes = (time: string) => {
+      const [hours, minutes] = time.split(":").map(Number);
+      return hours * 60 + minutes;
+    };
+
+    return getAvailableTimeSlots().filter((slot) => {
+      const slotStart = toMinutes(slot);
+      const slotEnd = slotStart + duration;
+      return appointments.some((appointment) => {
+        const appointmentStart = toMinutes(appointment.time);
+        const appointmentEnd = appointmentStart + appointment.duration;
+        return slotStart < appointmentEnd && slotEnd > appointmentStart;
+      });
+    });
   } catch (error) {
     console.error("Error fetching booked time slots:", error);
     throw new Error("Failed to load appointment availability");
@@ -152,6 +214,7 @@ export async function bookAppointment(input: BookAppointmentInput) {
     if (!appointmentType) {
       throw new AppointmentBookingError("Please select a valid appointment type");
     }
+    const duration = Number.parseInt(appointmentType.duration, 10);
 
     const user = await prisma.user.findUnique({ where: { clerkId: userId } });
     if (!user) throw new Error("User not found. Please ensure your account is properly set up.");
@@ -166,16 +229,25 @@ export async function bookAppointment(input: BookAppointmentInput) {
           throw new AppointmentBookingError("This dentist is no longer available");
         }
 
-        const existingAppointment = await transaction.appointment.findFirst({
+        const appointmentsForDay = await transaction.appointment.findMany({
           where: {
             doctorId: doctor.id,
             date: new Date(`${input.date}T00:00:00.000Z`),
-            time: input.time,
             status: { in: ["CONFIRMED", "COMPLETED"] },
           },
-          select: { id: true },
+          select: { time: true, duration: true },
         });
-        if (existingAppointment) {
+        const [slotHours, slotMinutes] = input.time.split(":").map(Number);
+        const slotStart = slotHours * 60 + slotMinutes;
+        const hasConflict = appointmentsForDay.some((appointment) => {
+          const [hours, minutes] = appointment.time.split(":").map(Number);
+          const appointmentStart = hours * 60 + minutes;
+          return (
+            slotStart < appointmentStart + appointment.duration &&
+            slotStart + duration > appointmentStart
+          );
+        });
+        if (hasConflict) {
           throw new AppointmentBookingError(
             "This time was just booked. Please choose another time"
           );
@@ -187,7 +259,7 @@ export async function bookAppointment(input: BookAppointmentInput) {
             doctorId: doctor.id,
             date: new Date(`${input.date}T00:00:00.000Z`),
             time: input.time,
-            duration: Number.parseInt(appointmentType.duration, 10),
+            duration,
             reason: appointmentType.name,
             status: "CONFIRMED",
           },

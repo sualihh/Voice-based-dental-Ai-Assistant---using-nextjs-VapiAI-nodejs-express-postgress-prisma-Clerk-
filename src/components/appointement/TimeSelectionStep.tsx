@@ -27,7 +27,18 @@ function TimeSelectionStep({
   selectedTime,
   selectedType,
 }: TimeSelectionStepProps) {
-  const { data: bookedTimeSlots = [] } = useBookedTimeSlots(selectedDentistId, selectedDate);
+  const selectedAppointmentType = APPOINTMENT_TYPES.find(
+    (type) => type.id === selectedType
+  );
+  const appointmentDuration = selectedAppointmentType
+    ? Number.parseInt(selectedAppointmentType.duration, 10)
+    : 30;
+  const {
+    data: bookedTimeSlots = [],
+    isError: availabilityError,
+    isFetching: availabilityLoading,
+    refetch: refetchAvailability,
+  } = useBookedTimeSlots(selectedDentistId, selectedDate, appointmentDuration);
 
   const availableDates = getNext5Days();
   const availableTimeSlots = getAvailableTimeSlots();
@@ -92,7 +103,7 @@ function TimeSelectionStep({
               >
                 <div className="text-center">
                   <div className="font-medium">
-                    {new Date(date).toLocaleDateString("en-US", {
+                    {new Date(`${date}T00:00:00`).toLocaleDateString("en-US", {
                       weekday: "short",
                       month: "short",
                       day: "numeric",
@@ -104,35 +115,74 @@ function TimeSelectionStep({
           </div>
 
           {/* time Selection (only show when date is selected) */}
-          {selectedDate && (
+          {selectedDate && !selectedType && (
+            <p className="text-sm text-muted-foreground">
+              Select an appointment type to see available times.
+            </p>
+          )}
+
+          {selectedDate && selectedType && (
             <div className="space-y-3">
               <h4 className="font-medium">Available Times</h4>
-              <div className="grid grid-cols-3 gap-2">
-                {availableTimeSlots.map((time) => {
-                  const isBooked = bookedTimeSlots.includes(time);
-                  return (
-                    <Button
-                      key={time}
-                      variant={selectedTime === time ? "default" : "outline"}
-                      onClick={() => !isBooked && onTimeChange(time)}
-                      size="sm"
-                      disabled={isBooked}
-                      className={isBooked ? "opacity-50 cursor-not-allowed" : ""}
-                    >
-                      <ClockIcon className="w-3 h-3 mr-1" />
-                      {time}
-                      {isBooked && " (Booked)"}
-                    </Button>
-                  );
-                })}
-              </div>
+              {availabilityLoading ? (
+                <p className="text-sm text-muted-foreground" aria-live="polite">
+                  Checking available times...
+                </p>
+              ) : availabilityError ? (
+                <div className="space-y-2" role="alert">
+                  <p className="text-sm text-destructive">
+                    Couldn&apos;t load availability. Please try again.
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => refetchAvailability()}
+                  >
+                    Try again
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-3 gap-2">
+                    {availableTimeSlots.map((time) => {
+                      const isBooked = bookedTimeSlots.includes(time);
+                      return (
+                        <Button
+                          key={time}
+                          type="button"
+                          variant={selectedTime === time ? "default" : "outline"}
+                          onClick={() => !isBooked && onTimeChange(time)}
+                          size="sm"
+                          disabled={isBooked}
+                          aria-pressed={selectedTime === time}
+                          className={isBooked ? "opacity-50 cursor-not-allowed" : ""}
+                        >
+                          <ClockIcon className="w-3 h-3 mr-1" />
+                          {time}
+                          {isBooked && " (Booked)"}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  {availableTimeSlots.every((time) => bookedTimeSlots.includes(time)) && (
+                    <p className="text-sm text-muted-foreground">
+                      This day is fully booked. Please choose another date.
+                    </p>
+                  )}
+                </>
+              )}
             </div>
           )}
         </div>
       </div>
 
       {/* continue button (only show when all selections are made) */}
-      {selectedType && selectedDate && selectedTime && (
+      {selectedType &&
+        selectedDate &&
+        selectedTime &&
+        !bookedTimeSlots.includes(selectedTime) &&
+        !availabilityLoading &&
+        !availabilityError && (
         <div className="flex justify-end">
           <Button onClick={onContinue}>Review Booking</Button>
         </div>

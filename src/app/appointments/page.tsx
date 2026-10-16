@@ -11,9 +11,12 @@ useBookAppointment,
 useUserAppointments,
 } from "@/hooks/use-appointment";
 import { APPOINTMENT_TYPES } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
+import Image from "next/image";
+import { SignInButton, useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 type Appointment = {
 id: string;
@@ -26,6 +29,7 @@ patientEmail: string;
 };
 
 function AppointmentsPage() {
+const { isLoaded, isSignedIn } = useUser();
 const [selectedDentistId, setSelectedDentistId] =
 useState<string | null>(null);
 
@@ -43,7 +47,7 @@ useState<Appointment | null>(null);
 const bookAppointmentMutation = useBookAppointment();
 
 const { data: userAppointments = [] } =
-useUserAppointments();
+useUserAppointments(isSignedIn === true);
 
 const handleSelectDentist = (dentistId: string) => {
 setSelectedDentistId(dentistId);
@@ -67,10 +71,10 @@ const appointmentType = APPOINTMENT_TYPES.find(
 
 bookAppointmentMutation.mutate(
   {
-    doctorId: selectedDentistId,
-    date: selectedDate,
-    time: selectedTime,
-    reason: appointmentType?.name,
+  doctorId: selectedDentistId,
+  date: selectedDate,
+  time: selectedTime,
+  reason: appointmentType?.name,
   },
   {
     onSuccess: async (appointment) => {
@@ -85,31 +89,19 @@ bookAppointmentMutation.mutate(
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-              userEmail: appointment.patientEmail,
-              doctorName: appointment.doctorName,
-              appointmentDate: format(
-                new Date(appointment.date),
-                "EEEE, MMMM d, yyyy"
-              ),
-              appointmentTime: appointment.time,
-              appointmentType: appointmentType?.name,
-              duration: appointmentType?.duration,
-              price: appointmentType?.price,
-            }),
+            body: JSON.stringify({ appointmentId: appointment.id }),
           }
         );
 
         if (!emailResponse.ok) {
-          console.error(
-            "Failed to send confirmation email"
-          );
+          toast.error("Your appointment was booked, but we couldn't email the confirmation.");
         }
       } catch (error) {
         console.error(
           "Error sending confirmation email:",
           error
         );
+        toast.error("Your appointment was booked, but we couldn't email the confirmation.");
       }
 
       // Show success modal
@@ -132,6 +124,36 @@ bookAppointmentMutation.mutate(
 );
 
 };
+
+if (!isLoaded) {
+  return (
+    <>
+      <Navbar />
+      <main className="mx-auto max-w-7xl px-6 py-24 text-center text-muted-foreground">
+        Loading your appointment booking...
+      </main>
+    </>
+  );
+}
+
+if (!isSignedIn) {
+  return (
+    <>
+      <Navbar />
+      <main className="mx-auto flex min-h-[70vh] max-w-2xl flex-col items-center justify-center px-6 pt-20 text-center">
+        <div className="rounded-3xl border border-primary/15 bg-white/90 p-10 shadow-lg shadow-sky-900/5">
+          <h1 className="mb-3 text-3xl font-bold">Sign in to book an appointment</h1>
+          <p className="mb-6 text-muted-foreground">
+            Sign in to choose a dentist, find an available time, and manage your appointments.
+          </p>
+          <SignInButton mode="modal">
+            <Button size="lg">Sign in to continue</Button>
+          </SignInButton>
+        </div>
+      </main>
+    </>
+  );
+}
 
 return (
 <>
@@ -171,7 +193,10 @@ return (
         onContinue={() => setCurrentStep(3)}
         onDateChange={setSelectedDate}
         onTimeChange={setSelectedTime}
-        onTypeChange={setSelectedType}
+        onTypeChange={(type) => {
+          setSelectedType(type);
+          setSelectedTime("");
+        }}
       />
     )}
 
@@ -198,7 +223,7 @@ return (
       appointmentDetails={{
         doctorName: bookedAppointment.doctorName,
         appointmentDate: format(
-          new Date(bookedAppointment.date),
+          parseISO(String(bookedAppointment.date)),
           "EEEE, MMMM d, yyyy"
         ),
         appointmentTime: bookedAppointment.time,
@@ -223,9 +248,11 @@ return (
             >
               <div className="flex items-center gap-3 mb-3">
                 <div className="size-10 bg-primary/10 rounded-full flex items-center justify-center">
-                  <img
-                    src={appointment.doctorImageUrl}
+                  <Image
+                    src={appointment.doctorImageUrl || "/logo.png"}
                     alt={appointment.doctorName}
+                    width={40}
+                    height={40}
                     className="size-10 rounded-full"
                   />
                 </div>
@@ -245,7 +272,7 @@ return (
                 <p className="text-muted-foreground">
                   📅{" "}
                   {format(
-                    new Date(appointment.date),
+                    parseISO(String(appointment.date)),
                     "MMM d, yyyy"
                   )}
                 </p>
