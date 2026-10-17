@@ -16,9 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Dental Wise AI - Your Dental Assistant",
+  title: "Hulux AI - Your Dental Assistant",
   description:
-    "Get instant answers to your dental questions with Dental Wise AI, your trusted dental assistant. Powered by advanced AI technology, Dental Wise AI provides accurate and reliable information to help you make informed decisions about your oral health. Whether you have questions about dental care, treatments, or oral hygiene, Dental Wise AI is here to assist you 24/7. Experience the future of dental care with Dental Wise AI today!",
+    "Hulux AI helps you find dental guidance and book appointments with a dentist.",
 };
 
 export default function RootLayout({

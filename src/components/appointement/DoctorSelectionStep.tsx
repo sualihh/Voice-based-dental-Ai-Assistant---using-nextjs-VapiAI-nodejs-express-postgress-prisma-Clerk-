@@ -1,9 +1,15 @@
-import { useAvailableDoctors } from "@/hooks/use-doctor";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
-import Image from "next/image";
 import { MapPinIcon, PhoneIcon, StarIcon } from "lucide-react";
+import Image from "next/image";
+import { useAvailableDoctors } from "@/hooks/use-doctor";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
 import { DoctorCardsLoading } from "./DoctorCardsLoading";
 
 interface DoctorSelectionStepProps {
@@ -24,7 +30,6 @@ function DoctorSelectionStep({
     refetch,
   } = useAvailableDoctors();
 
-
   if (isLoading)
     return (
       <div className="space-y-6">
@@ -38,7 +43,8 @@ function DoctorSelectionStep({
       <div className="space-y-4" role="alert">
         <h2 className="text-2xl font-semibold">Choose Your Dentist</h2>
         <p className="text-muted-foreground">
-          We couldn&apos;t load available dentists. Check your connection and try again.
+          We couldn&apos;t load available dentists. Check your connection and
+          try again.
         </p>
         <Button onClick={() => refetch()}>Try again</Button>
       </div>
@@ -49,7 +55,8 @@ function DoctorSelectionStep({
       <div className="space-y-4">
         <h2 className="text-2xl font-semibold">Choose Your Dentist</h2>
         <p className="text-muted-foreground">
-          No dentists are available for booking right now. Please check back later.
+          No dentists are available for booking right now. Please check back
+          later.
         </p>
       </div>
     );
@@ -60,7 +67,6 @@ function DoctorSelectionStep({
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {dentists.map((dentist) => (
-            
           <button
             key={dentist.id}
             type="button"
@@ -83,7 +89,9 @@ function DoctorSelectionStep({
                     className="w-16 h-16 rounded-full object-cover"
                   />
                   <div className="flex-1">
-                    <CardTitle className="text-lg">{dentist.name || "Dentist"}</CardTitle>
+                    <CardTitle className="text-lg">
+                      {dentist.name || "Dentist"}
+                    </CardTitle>
                     <CardDescription className="text-primary font-medium">
                       {dentist.specialty || "General Dentistry"}
                     </CardDescription>
@@ -103,14 +111,17 @@ function DoctorSelectionStep({
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <MapPinIcon className="w-4 h-4" />
-                  <span>DentWise</span>
+                  <span>Hulux AI</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <PhoneIcon className="w-4 h-4" />
-                  <span>{dentist.phone || "Contact details available after booking"}</span>
+                  <span>
+                    {dentist.phone || "Contact details available after booking"}
+                  </span>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {dentist.bio || "Experienced dental professional providing quality care."}
+                  {dentist.bio ||
+                    "Experienced dental professional providing quality care."}
                 </p>
                 <Badge variant="secondary">Licensed Professional</Badge>
               </CardContent>

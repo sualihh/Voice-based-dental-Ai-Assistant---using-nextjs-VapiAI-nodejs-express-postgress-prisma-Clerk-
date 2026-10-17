@@ -2,22 +2,36 @@ import Image from "next/image";
 
 function Footer() {
   return (
-    <footer id="about" className="px-6 py-12 border-t bg-muted/30">
-      <div className="max-w-6xl mx-auto">
-        <div className="grid md:grid-cols-4 gap-8">
+    <footer
+      id="about"
+      className="relative isolate overflow-hidden px-6 py-12 border-t"
+    >
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-20 bg-cover bg-[position:75%_center]"
+        style={{ backgroundImage: "url('/hulux-about-background.png')" }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 bg-gradient-to-r from-white/95 via-white/80 to-white/45"
+      />
+      <div className="relative max-w-6xl mx-auto">
+        <div className="grid gap-8 md:grid-cols-3">
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Image
                 src="/logo.png"
-                alt="DentWise Logo"
+                alt="Hulux AI logo"
                 width={32}
                 height={32}
                 className="w-8 h-8"
               />
-              <span className="font-semibold text-lg">Dent AI</span>
+              <span className="font-semibold text-lg">Hulux AI</span>
             </div>
+            <h2 className="text-xl font-semibold">About Hulux AI</h2>
             <p className="text-sm text-muted-foreground">
-              AI-powered dental assistant providing instant answers and personalized care guidance for all your oral health needs. Built for real people with real dental questions.
+              Hulux AI helps you find dental guidance and book appointments with
+              a dentist.
             </p>
           </div>
 
@@ -35,58 +49,37 @@ function Footer() {
                 </a>
               </li>
               <li>
-                <span>
+                <a href="/#how-it-works" className="hover:text-foreground">
                   FAQ
-                </span>
+                </a>
+              </li>
+              <li>
+                <a href="/voice" className="hover:text-foreground">
+                  Try Hulux AI
+                </a>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-medium mb-3">Support</h4>
+            <h4 className="font-medium mb-3">Appointments</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <span>
-                  Help center
-                </span>
+                <a href="/appointments" className="hover:text-foreground">
+                  Book a visit
+                </a>
               </li>
               <li>
-                <span>
-                  Contact us
-                </span>
-              </li>
-              <li>
-                <span>
-                  Status
-                </span>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-medium mb-3">Legal</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>
-                <span>
-                  Privacy
-                </span>
-              </li>
-              <li>
-                <span>
-                  Terms
-                </span>
-              </li>
-              <li>
-                <span>
-                  Security
-                </span>
+                <a href="/appointments" className="hover:text-foreground">
+                  Manage appointments
+                </a>
               </li>
             </ul>
           </div>
         </div>
 
         <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; 2026 DentAI. Built for real people with real dental questions.</p>
+          <p>&copy; {new Date().getFullYear()} Hulux AI.</p>
         </div>
       </div>
     </footer>

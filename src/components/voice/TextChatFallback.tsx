@@ -1,82 +1,90 @@
 "use client";
 
+import type { FormEvent } from "react";
 import { useState } from "react";
+
+type ChatMessage = {
+  id: number;
+  role: "user" | "assistant";
+  content: string;
+};
+
+function getDemoReply(message: string) {
+  const normalizedMessage = message.toLowerCase();
+
+  if (/appointment|book|schedule|dentist/.test(normalizedMessage)) {
+    return "Demo reply: use Book appointment to browse dentists and available times. This sample chat does not create bookings.";
+  }
+
+  if (/pain|hurt|ache|swelling|bleed|emergency/.test(normalizedMessage)) {
+    return "Demo reply: this sample cannot assess symptoms or provide a diagnosis. Please contact a licensed dentist. For severe swelling, uncontrolled bleeding, or trouble breathing, seek urgent medical care.";
+  }
+
+  return "Demo reply: thanks for trying Hulux AI. This is a local sample chat; no AI service is connected. Use the appointment page to book a visit.";
+}
 
 export default function TextChatFallback() {
   const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
 
-  const send = async () => {
-    if (!input.trim()) return;
+  const send = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     const userMessage = input.trim();
-    setMessages((m) => [...m, { role: "user", content: userMessage }]);
+    if (!userMessage) return;
+
+    setMessages((previous) => [
+      ...previous,
+      {
+        id: previous.length,
+        role: "user",
+        content: userMessage,
+      },
+      {
+        id: previous.length + 1,
+        role: "assistant",
+        content: getDemoReply(userMessage),
+      },
+    ]);
     setInput("");
-    setLoading(true);
-    setError(null);
-
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMessage }),
-      });
-
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        const msg = body?.error || `${res.status} ${res.statusText}`;
-        setError(msg);
-        // fallback canned reply
-        setMessages((m) => [...m, { role: "assistant", content: "Sorry — chat fallback is unavailable right now. Please try voice or ensure the server-side OPENAI_API_KEY is configured." }]);
-      } else {
-        const data = await res.json();
-        const reply = data?.reply || "(no reply)";
-        setMessages((m) => [...m, { role: "assistant", content: reply }]);
-      }
-    } catch (e) {
-      setError(String(e));
-      setMessages((m) => [...m, { role: "assistant", content: "The chat service is unreachable. Please ensure the server is running and OPENAI_API_KEY is configured." }]);
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
-    <div className="w-full bg-card/90 backdrop-blur-sm border border-border rounded-xl p-4 mb-8">
-      <div className="space-y-3 mb-3">
-        {messages.map((msg, idx) => (
-          <div key={idx} className="">
-            <div className="font-semibold text-xs text-muted-foreground mb-1">{msg.role === "assistant" ? "DentWise AI" : "You"}</div>
-            <p className="text-foreground">{msg.content}</p>
+    <div className="mb-8 w-full rounded-xl border border-border bg-card/90 p-4 backdrop-blur-sm">
+      <p className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        Demo mode: sample replies only. No AI service is connected, and this is
+        not medical advice.
+      </p>
+
+      <div
+        aria-live="polite"
+        className="mb-4 max-h-64 space-y-3 overflow-y-auto"
+      >
+        {messages.map((message) => (
+          <div key={message.id}>
+            <div className="mb-1 text-xs font-semibold text-muted-foreground">
+              {message.role === "assistant" ? "Hulux AI demo" : "You"}
+            </div>
+            <p className="text-foreground">{message.content}</p>
           </div>
         ))}
       </div>
 
-      {error && <div className="text-destructive text-sm mb-2">{error}</div>}
-
-      <div className="flex gap-2">
+      <form onSubmit={send} className="flex gap-2">
         <input
+          aria-label="Message for Hulux AI demo"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
-          className="flex-1 rounded-md border border-border p-2 bg-transparent"
-          placeholder="Type your question for the assistant..."
-          onKeyDown={(e) => {
-            if (e.key === "Enter") send();
-          }}
+          onChange={(event) => setInput(event.target.value)}
+          className="min-w-0 flex-1 rounded-md border border-border bg-transparent p-2"
+          placeholder="Try a sample question..."
         />
         <button
-          className="px-4 py-2 bg-primary text-white rounded-md"
-          onClick={send}
-          disabled={loading}
+          type="submit"
+          className="rounded-md bg-primary px-4 py-2 text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={!input.trim()}
         >
-          {loading ? "Sending..." : "Send"}
+          Send
         </button>
-      </div>
-
-      <div className="text-xs text-muted-foreground mt-2">
-        Note: text chat uses a server-side OpenAI key. If not configured, a helpful error or canned reply is shown.
-      </div>
+      </form>
     </div>
   );
 }

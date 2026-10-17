@@ -1,6 +1,8 @@
+import { SignUpButton } from "@clerk/nextjs";
+import { CalendarIcon, MicIcon } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { MicIcon, CalendarIcon } from "lucide-react";
 
 function CTA() {
   return (
@@ -15,7 +17,9 @@ function CTA() {
             <div className="space-y-4">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-primary/5 to-primary/10 rounded-full border border-primary/10">
                 <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                <span className="text-xs font-medium text-primary">Ready When You Are</span>
+                <span className="text-xs font-medium text-primary">
+                  Ready When You Are
+                </span>
               </div>
 
               <h2 className="text-3xl md:text-4xl font-bold leading-tight">
@@ -29,26 +33,31 @@ function CTA() {
               </h2>
 
               <p className="text-lg text-muted-foreground leading-relaxed">
-                Join 1,200+ patients who trust our AI for instant guidance and personalized care.
+                Get started with dental guidance or book a visit with a dentist.
               </p>
             </div>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <SignUpButton mode="modal" forceRedirectUrl="/pro">
+                <Button
+                  size="lg"
+                  className="px-6 py-3 font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/95 hover:to-primary/85 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+                >
+                  <MicIcon className="mr-2 h-4 w-4" />
+                  Try Hulux AI
+                </Button>
+              </SignUpButton>
               <Button
-                size="lg"
-                className="px-6 py-3 font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/95 hover:to-primary/85 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
-              >
-                <MicIcon className="mr-2 h-4 w-4" />
-                Start free chat
-              </Button>
-              <Button
+                asChild
                 size="lg"
                 variant="outline"
                 className="px-6 py-3 font-semibold border border-primary/20 hover:border-primary/40 hover:bg-primary/5 transition-all duration-300 rounded-xl"
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                Book appointment
+                <Link href="/appointments">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  Book appointment
+                </Link>
               </Button>
             </div>
           </div>
@@ -56,14 +65,6 @@ function CTA() {
           {/* Right Content - CTA Image */}
           <div className="relative flex justify-center lg:justify-end">
             <div className="relative">
-              {/* Floating Badge */}
-              <div className="absolute -top-4 left-4 bg-gradient-to-r from-green-500/90 to-emerald-500/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg z-10">
-                <div className="flex items-center gap-1">
-                  <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
-                  Available 24/7
-                </div>
-              </div>
-
               {/* Main Image */}
               <div className="relative">
                 {/* Subtle glow */}
@@ -71,7 +72,7 @@ function CTA() {
 
                 <Image
                   src="/cta.png"
-                  alt="DentWise AI Assistant"
+                  alt="Hulux AI dental assistant"
                   width={300}
                   height={300}
                   className="relative w-80 h-auto drop-shadow-xl hover:scale-105 transition-transform duration-500"
@@ -88,4 +89,4 @@ function CTA() {
     </section>
   );
 }
-export default CTA
+export default CTA;

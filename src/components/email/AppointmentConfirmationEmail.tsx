@@ -28,7 +28,6 @@ function AppointmentConfirmationEmail({
   duration,
   price,
 }: AppointmentConfirmationEmailProps) {
-
   return (
     <Html>
       <Head />
@@ -40,10 +39,10 @@ function AppointmentConfirmationEmail({
               src="https://i.ibb.co.com/tRy6cC2/logo.png"
               width="50"
               height="50"
-              alt="DentWise"
+              alt="Hulux AI"
               style={logo}
             />
-            <Text style={logoText}>Dent AI</Text>
+            <Text style={logoText}>Hulux AI</Text>
           </Section>
 
           <Heading style={h1}>Appointment Confirmed! 🦷</Heading>
@@ -51,7 +50,8 @@ function AppointmentConfirmationEmail({
           <Text style={text}>Hi there,</Text>
 
           <Text style={text}>
-            Your dental appointment has been successfully booked. Here are the details:
+            Your dental appointment has been successfully booked. Here are the
+            details:
           </Text>
 
           <Section style={appointmentDetails}>
@@ -78,12 +78,16 @@ function AppointmentConfirmationEmail({
           </Section>
 
           <Text style={text}>
-            Please arrive 15 minutes early for your appointment. If you need to reschedule or
-            cancel, please contact us at least 24 hours in advance.
+            Please arrive 15 minutes early for your appointment. If you need to
+            reschedule or cancel, please contact us at least 24 hours in
+            advance.
           </Text>
 
           <Section style={buttonContainer}>
-            <Link style={button} href={process.env.NEXT_PUBLIC_APP_URL + "/appointments"}>
+            <Link
+              style={button}
+              href={`${process.env.NEXT_PUBLIC_APP_URL}/appointments`}
+            >
               View My Appointments
             </Link>
           </Section>
@@ -91,7 +95,7 @@ function AppointmentConfirmationEmail({
           <Text style={footer}>
             Best regards,
             <br />
-            The Dent AI Team
+            The Hulux AI Team
           </Text>
 
           <Text style={footerText}>

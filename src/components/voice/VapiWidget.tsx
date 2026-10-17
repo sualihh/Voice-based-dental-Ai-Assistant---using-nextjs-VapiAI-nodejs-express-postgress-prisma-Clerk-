@@ -1,10 +1,10 @@
 "use client";
 
-import { vapi } from "@/lib/vapi";
-import { Button } from "@/components/ui/button";
 import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { vapi } from "@/lib/vapi";
 import { Card } from "../ui/card";
 import TextChatFallback from "./TextChatFallback";
 
@@ -135,30 +135,30 @@ function VapiWidget() {
   const toggleCall = async () => {
     const client = vapi;
     if (!client || !assistantId) {
-        setCallError(
-          "Voice assistant is not configured. Add the Vapi public API key and assistant ID to the app environment."
-        );
-        return;
+      setCallError(
+        "Voice assistant is not configured. Add the Vapi public API key and assistant ID to the app environment.",
+      );
+      return;
     }
 
     if (callActive) {
-        client.stop();
-        return;
+      client.stop();
+      return;
     }
 
     try {
-        setConnecting(true);
-        setCallError("");
-        setMessages([]);
-        setCallEnded(false);
-        await client.start(assistantId);
+      setConnecting(true);
+      setCallError("");
+      setMessages([]);
+      setCallEnded(false);
+      await client.start(assistantId);
     } catch (error) {
-        setConnecting(false);
-        setCallError(
-          error instanceof Error
-            ? error.message
-            : "Unable to start the voice assistant. Check microphone permissions and try again."
-        );
+      setConnecting(false);
+      setCallError(
+        error instanceof Error
+          ? error.message
+          : "Unable to start the voice assistant. Check microphone permissions and try again.",
+      );
     }
   };
 
@@ -228,7 +228,7 @@ function VapiWidget() {
               </div>
             </div>
 
-            <h2 className="text-xl font-bold text-foreground">DentWise AI</h2>
+            <h2 className="text-xl font-bold text-foreground">Hulux AI</h2>
             <p className="text-sm text-muted-foreground mt-1">
               Dental Assistant
             </p>
@@ -276,7 +276,9 @@ function VapiWidget() {
 
             <h2 className="text-xl font-bold text-foreground">You</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              {user ? `${user.firstName} ${user.lastName || ""}`.trim() : "Guest"}
+              {user
+                ? `${user.firstName} ${user.lastName || ""}`.trim()
+                : "Guest"}
             </p>
 
             {/* User Ready Text */}
@@ -303,7 +305,7 @@ function VapiWidget() {
                 className="message-item animate-in fade-in duration-300"
               >
                 <div className="font-semibold text-xs text-muted-foreground mb-1">
-                  {msg.role === "assistant" ? "DentWise AI" : "You"}:
+                  {msg.role === "assistant" ? "Hulux AI" : "You"}:
                 </div>
                 <p className="text-foreground">{msg.content}</p>
               </div>
@@ -315,7 +317,7 @@ function VapiWidget() {
                   System:
                 </div>
                 <p className="text-foreground">
-                  Call ended. Thank you for using Dent AI!
+                  Call ended. Thank you for using Hulux AI!
                 </p>
               </div>
             )}
@@ -338,7 +340,7 @@ function VapiWidget() {
               : "bg-primary hover:bg-primary/90"
           } text-white relative`}
           onClick={toggleCall}
-          disabled={connecting || !isLoaded || !assistantId}
+          disabled={connecting || !isLoaded}
         >
           {connecting && (
             <span className="absolute inset-0 rounded-full animate-ping bg-primary/50 opacity-75"></span>
