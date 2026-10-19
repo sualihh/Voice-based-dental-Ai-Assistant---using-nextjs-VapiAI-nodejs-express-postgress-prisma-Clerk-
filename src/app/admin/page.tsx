@@ -7,6 +7,7 @@ async function AdminPage() {
 
   const  user  = await currentUser()
 
+  if(!user) redirect('/')
 
     const adminEmail = process.env.ADMIN_EMAIL
 
