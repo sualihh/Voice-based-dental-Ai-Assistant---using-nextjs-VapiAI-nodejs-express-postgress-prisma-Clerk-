@@ -9,7 +9,13 @@ import { Button } from "@/components/ui/button"
 
 
 
-
+function AlertDialogPortal({
+  ...props
+}: React.ComponentProps<typeof AlertDialogPrimitive.Portal>) {
+  return (
+    <AlertDialogPrimitive.Portal data-slot="alert-dialog-portal" {...props} />
+  )
+}
 
 function AlertDialogOverlay({
   className,
